@@ -110,7 +110,9 @@ async function startBot() {
             const text =
                 msg.message?.conversation ||
                 msg.message?.extendedTextMessage?.text ||
-                msg.message?.imageMessage?.caption || '';
+                msg.message?.imageMessage?.caption ||
+                msg.message?.audioMessage?.caption || '';
+            
 
             await sock.sendPresenceUpdate('composing', from);
 

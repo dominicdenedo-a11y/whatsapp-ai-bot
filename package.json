@@ -12,6 +12,7 @@
     "@whiskeysockets/baileys": "^6.7.0",
     "dotenv": "^16.4.5",
     "groq-sdk": "^1.2.1",
+    "gtts": "^0.2.1",
     "node-cache": "^5.1.2",
     "pino": "^9.0.0"
   }

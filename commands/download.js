@@ -25,6 +25,13 @@ async function downloadVideo({ sock, msg, from, url, pushName }) {
 
     const cmd = `yt-dlp "${url}" -o "${outputTemplate}" --format "best[filesize<50M]/best" --merge-output-format mp4 --no-playlist --socket-timeout 30`;
 
+    // Validate URL before downloading
+    const validPlatforms = /youtube\.com|youtu\.be|tiktok\.com|instagram\.com|twitter\.com|x\.com|facebook\.com|fb\.watch|vt\.tiktok\.com|vm\.tiktok\.com/i;
+    if (!validPlatforms.test(url)) {
+        await sock.sendMessage(from, { text: '❌ Unsupported platform!\nSupported: YouTube, TikTok, Instagram, Twitter, Facebook' }, { quoted: msg });
+        return;
+    }
+
     return new Promise((resolve) => {
         exec(cmd, { timeout: 120000 }, async (err, stdout, stderr) => {
             if (err) {

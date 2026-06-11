@@ -32,7 +32,7 @@ async function showMenu({ sock, msg, from, pushName }) {
 🛠️ *ᴜᴛɪʟɪᴛɪᴇꜱ*
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 ┃ */translate* • */calc* • */define*
-┃ */summarize* • */code* • */fix*
+┃ */summarize* • */code* • */fixcode*
 ┃ */explain* • */recipe* • */workout*
 
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰

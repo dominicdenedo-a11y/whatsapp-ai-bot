@@ -7,9 +7,10 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
 
     const groupMetadata = await sock.groupMetadata(from);
     const botId = sock.user.id.replace(/:.*@/, '@');
+    const normalizeJid = (jid) => jid?.replace(/:.*@/, '@') || '';
     const senderId = msg.key.participant || msg.key.remoteJid;
-    const botAdmin = groupMetadata.participants.find(p => p.id === botId)?.admin;
-    const senderAdmin = groupMetadata.participants.find(p => p.id === senderId)?.admin;
+    const botAdmin = groupMetadata.participants.find(p => normalizeJid(p.id) === botId)?.admin;
+    const senderAdmin = groupMetadata.participants.find(p => normalizeJid(p.id) === normalizeJid(senderId))?.admin;
 
     if (!senderAdmin) {
         await sock.sendMessage(from, { text: '❌ You must be an admin to use this command!' }, { quoted: msg });
@@ -79,13 +80,26 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
         }
 
         case 'delete': {
-            const quoted = msg.message?.extendedTextMessage?.contextInfo?.stanzaId;
-            const participant = msg.message?.extendedTextMessage?.contextInfo?.participant;
-            if (!quoted) {
+            const contextInfo = msg.message?.extendedTextMessage?.contextInfo;
+            const quotedId = contextInfo?.stanzaId;
+            const quotedParticipant = contextInfo?.participant;
+            if (!quotedId) {
                 await sock.sendMessage(from, { text: '❌ Reply to a message to delete it!' }, { quoted: msg });
                 return;
             }
-            await sock.sendMessage(from, { delete: { remoteJid: from, fromMe: false, id: quoted, participant } });
+            try {
+                await sock.sendMessage(from, {
+                    delete: {
+                        remoteJid: from,
+                        fromMe: quotedParticipant === sock.user.id.replace(/:.*@/, '@'),
+                        id: quotedId,
+                        participant: quotedParticipant
+                    }
+                });
+                await sock.sendMessage(from, { text: '🗑️ Message deleted!' }, { quoted: msg });
+            } catch(e) {
+                await sock.sendMessage(from, { text: '❌ Could not delete: ' + e.message }, { quoted: msg });
+            }
             break;
         }
 

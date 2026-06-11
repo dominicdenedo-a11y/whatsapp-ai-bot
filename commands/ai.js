@@ -1,6 +1,18 @@
 const Groq = require('groq-sdk');
 
 const chatHistory = new Map();
+const chatTimestamps = new Map();
+
+// Clear old chats every hour
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, time] of chatTimestamps.entries()) {
+        if (now - time > 24 * 60 * 60 * 1000) {
+            chatHistory.delete(key);
+            chatTimestamps.delete(key);
+        }
+    }
+}, 60 * 60 * 1000);
 
 async function aiChat({ sock, msg, from, query, pushName }) {
     const apiKey = process.env.GROQ_API_KEY;
@@ -17,6 +29,7 @@ async function aiChat({ sock, msg, from, query, pushName }) {
 
         const userKey = from;
         if (!chatHistory.has(userKey)) chatHistory.set(userKey, []);
+        chatTimestamps.set(userKey, Date.now());
         const history = chatHistory.get(userKey);
 
         const messages = [

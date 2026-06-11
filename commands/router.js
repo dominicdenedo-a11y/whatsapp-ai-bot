@@ -3,6 +3,7 @@ const { downloadVideo } = require('./download');
 const { analyzeImage } = require('./image');
 const { handleFun } = require('./fun');
 const { handleGroup } = require('./group');
+const { textToVoice } = require('./voice');
 const { showMenu } = require('./help');
 
 const URL_REGEX = /https?:\/\/[^\s]*/i;
@@ -28,8 +29,14 @@ async function handleCommand({ sock, msg, from, text, pushName }) {
         return;
     }
 
+    // Only download if the command IS a URL (no other command before it)
     const urlMatch = rawText.match(URL_REGEX);
-    if (urlMatch) {
+    const isDownloadCmd = ['dl', 'download', 'video'].includes(cmd);
+    if (urlMatch && !isDownloadCmd && cmd === urlMatch[0].replace('https://', '').replace('http://', '').split('/')[0]) {
+        await downloadVideo({ sock, msg, from, url: urlMatch[0], pushName });
+        return;
+    }
+    if (urlMatch && (rawText.slice(1).trim() === urlMatch[0] || rawText.slice(1).trim().startsWith(urlMatch[0])) && !isDownloadCmd && !['ai','ask','chat','translate','calc','define','summarize','code','fix','explain','recipe','workout'].includes(cmd)) {
         await downloadVideo({ sock, msg, from, url: urlMatch[0], pushName });
         return;
     }
@@ -98,6 +105,7 @@ async function handleCommand({ sock, msg, from, text, pushName }) {
             await aiChat({ sock, msg, from, pushName, query: `Write clean commented code for: ${args}` });
             break;
         case 'fix':
+        case 'fixcode':
             await aiChat({ sock, msg, from, pushName, query: `Fix bugs and explain this code:\n${args}` });
             break;
         case 'explain':
