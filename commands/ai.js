@@ -20,7 +20,7 @@ async function aiChat({ sock, msg, from, query, pushName }) {
         const history = chatHistory.get(userKey);
 
         const messages = [
-            { role: 'system', content: `You are a helpful, witty WhatsApp AI assistant. Keep responses concise and conversational. Use emojis naturally. The user's name is ${pushName}.` },
+            { role: 'system', content: `You are a helpful, witty Espirito. Keep responses concise and conversational. Use emojis naturally. The user's name is ${pushName}.` },
             ...history,
             { role: 'user', content: query }
         ];

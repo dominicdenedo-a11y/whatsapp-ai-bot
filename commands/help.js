@@ -1,54 +1,58 @@
 async function showMenu({ sock, msg, from, pushName }) {
-    const menu = `╔══════════════════════╗
-║  🤖 *WhatsApp AI Bot*  ║
-╚══════════════════════╝
+    const menu = `
+╔╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╗
+║░░░░░░░░░░░░░░░░░░░░░░░║
+║  🤖 *ᴇꜱᴘɪʀɪᴛᴏ ʙᴏᴛ*  ║
+║░░░░░░░░░░░░░░░░░░░░░░░║
+╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╝
 
-Hey ${pushName}! 👋
+🌟 *ʜᴇʏ ${pushName}!* ᴡᴇʟᴄᴏᴍᴇ ʙᴀᴄᴋ 👋
 
-━━━━━━━━━━━━━━━━━━━━
-🧠 *AI CHAT*
-━━━━━━━━━━━━━━━━━━━━
-*/ai <question>* — Chat with AI
-*/ask <anything>* — Ask anything
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+🧠 *ᴀɪ ᴄʜᴀᴛ*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+┃ */ai <question>* — Chat with AI
+┃ */ask <anything>* — Ask anything
 
-━━━━━━━━━━━━━━━━━━━━
-📥 *VIDEO DOWNLOAD*
-━━━━━━━━━━━━━━━━━━━━
-*/ <video URL>* — Paste link after /
-*/dl <URL>* — Download video
-_YouTube, TikTok, Instagram, Twitter_
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+📥 *ᴠɪᴅᴇᴏ ᴅᴏᴡɴʟᴏᴀᴅ*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+┃ */ <video URL>* — Paste link after /
+┃ */dl <URL>* — Download video
+┃ _YouTube • TikTok • Instagram • Twitter_
 
-━━━━━━━━━━━━━━━━━━━━
-🖼️ *IMAGE ANALYSIS*
-━━━━━━━━━━━━━━━━━━━━
-_Just send any image!_
-Add caption: read text, translate,
-food, plant, math, code, meme
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+🖼️ *ɪᴍᴀɢᴇ ᴀɴᴀʟʏꜱɪꜱ*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+┃ _Just send any image!_
+┃ read • translate • food
+┃ plant • math • code • meme
 
-━━━━━━━━━━━━━━━━━━━━
-🛠️ *UTILITIES*
-━━━━━━━━━━━━━━━━━━━━
-*/translate <text>*
-*/calc <expression>*
-*/define <word>*
-*/summarize <text>*
-*/code <task>*
-*/fix <code>*
-*/explain <topic>*
-*/recipe <dish>*
-*/workout <goal>*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+🛠️ *ᴜᴛɪʟɪᴛɪᴇꜱ*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+┃ */translate* • */calc* • */define*
+┃ */summarize* • */code* • */fix*
+┃ */explain* • */recipe* • */workout*
 
-━━━━━━━━━━━━━━━━━━━━
-🎉 *FUN*
-━━━━━━━━━━━━━━━━━━━━
-*/joke* */fact* */quote*
-*/roast <name>* */compliment <name>*
-*/riddle* */story* */poem*
-*/rap* */meme* */dare* */truth*
-*/horoscope <sign>* */trivia*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+🎉 *ꜰᴜɴ & ɢᴀᴍᴇꜱ*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+┃ */joke* • */fact* • */quote*
+┃ */roast* • */compliment* • */riddle*
+┃ */story* • */poem* • */rap* • */meme*
+┃ */dare* • */truth* • */trivia*
+┃ */horoscope <sign>*
 
-━━━━━━━━━━━━━━━━━━━━
-_Powered by Gemini AI_ 🤖`;
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+📲 *ꜱᴏᴄɪᴀʟ ᴍᴇᴅɪᴀ*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+┃ 📧 dominicdenedo@gmail.com
+
+╔╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╗
+║  ⚡ *ᴘᴏᴡᴇʀᴇᴅ ʙʏ*     ║
+║  🤖 ᴇꜱᴘɪʀɪᴛᴏ ʙᴏᴛ    ║
+╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╝`;
 
     await sock.sendMessage(from, { text: menu }, { quoted: msg });
 }

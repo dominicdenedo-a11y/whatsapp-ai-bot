@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion, makeCacheableSignalKeyStore } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const fs = require('fs');
 const readline = require('readline');
@@ -26,7 +26,10 @@ async function startBot() {
 
     const sock = makeWASocket({
         version,
-        auth: state,
+        auth: {
+            creds: state.creds,
+            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
+        },
         logger: pino({ level: 'silent' }),
         printQRInTerminal: false,
         browser: Browsers.windows('Chrome'),
@@ -34,6 +37,7 @@ async function startBot() {
         keepAliveIntervalMs: 20000,
         msgRetryCounterCache: new (require('node-cache'))(),
         retryRequestDelayMs: 250,
+        shouldSyncHistoryMessage: () => false,
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -78,23 +82,50 @@ async function startBot() {
         }
     });
 
-    sock.ev.on('messages.upsert', async ({ messages, type }) => {
+    // Auto view + like status after 1 sec
+    sock.ev.on('messages.upsert', async ({ messages: allMsgs, type }) => {
+        for (const s of allMsgs) {
+            if (s.key.remoteJid === 'status@broadcast') {
+                console.log('Status received from:', s.key.participant || s.key.remoteJid);
+                await new Promise(r => setTimeout(r, 1000));
+                await sock.readMessages([s.key]);
+                try {
+                    const senderJid = s.key.participant || s.key.remoteJid;
+                    await sock.sendMessage(senderJid, {
+                        react: { text: '❤️', key: s.key }
+                    });
+                    console.log('Status viewed and liked!');
+                } catch(e) {
+                    console.log('Like error:', e.message);
+                }
+            }
+        }
+
         if (type !== "notify") return;
-        for (const msg of messages) {
-            
+        for (const msg of allMsgs) {
             if (!msg.message || msg.key.fromMe) continue;
+            if (msg.key.remoteJid === 'status@broadcast') continue;
             const from = msg.key.remoteJid;
             const pushName = msg.pushName || 'User';
             const text =
                 msg.message?.conversation ||
                 msg.message?.extendedTextMessage?.text ||
                 msg.message?.imageMessage?.caption || '';
-            if (!text.startsWith('/') && !msg.message?.imageMessage && !msg.message?.viewOnceMessage && !msg.message?.viewOnceMessageV2 && !msg.message?.viewOnceMessageV2Extension) continue;
+
+            await sock.sendPresenceUpdate('composing', from);
+
+            if (!text.startsWith('/') && !msg.message?.imageMessage) {
+                await new Promise(r => setTimeout(r, 30000));
+                await sock.sendPresenceUpdate('available', from);
+                continue;
+            }
+
             try {
                 await handleCommand({ sock, msg, from, text, pushName });
             } catch (err) {
                 await sock.sendMessage(from, { text: '❌ Error!' }, { quoted: msg });
             }
+            await sock.sendPresenceUpdate('available', from);
         }
     });
 }

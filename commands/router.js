@@ -10,6 +10,7 @@ async function handleCommand({ sock, msg, from, text, pushName }) {
     const rawText = text.trim();
 
     if (msg.message?.imageMessage) {
+        if (!rawText) return;
         await analyzeImage({ sock, msg, from, text: rawText, pushName });
         return;
     }
