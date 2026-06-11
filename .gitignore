@@ -1,0 +1,4 @@
+.env
+auth_info/
+downloads/
+node_modules/

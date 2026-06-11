@@ -1,0 +1,105 @@
+const { aiChat } = require('./ai');
+const { downloadVideo } = require('./download');
+const { analyzeImage } = require('./image');
+const { handleFun } = require('./fun');
+const { showMenu } = require('./help');
+
+const URL_REGEX = /https?:\/\/[^\s]*/i;
+
+async function handleCommand({ sock, msg, from, text, pushName }) {
+    const rawText = text.trim();
+
+    if (msg.message?.imageMessage) {
+        await analyzeImage({ sock, msg, from, text: rawText, pushName });
+        return;
+    }
+
+    if (!rawText.startsWith('/')) return;
+
+    const input = rawText.slice(1).trim();
+    const parts = input.split(/\s+/);
+    const cmd = parts[0].toLowerCase();
+    const args = parts.slice(1).join(' ');
+
+    if (!cmd || cmd === 'help' || cmd === 'menu') {
+        await showMenu({ sock, msg, from, pushName });
+        return;
+    }
+
+    const urlMatch = rawText.match(URL_REGEX);
+    if (urlMatch) {
+        await downloadVideo({ sock, msg, from, url: urlMatch[0], pushName });
+        return;
+    }
+
+    switch (cmd) {
+        case 'ai':
+        case 'ask':
+        case 'chat':
+            await aiChat({ sock, msg, from, query: args || 'Hello!', pushName });
+            break;
+
+        case 'dl':
+        case 'download':
+        case 'video': {
+            const url = args.match(URL_REGEX)?.[0] || args;
+            if (!url) {
+                await sock.sendMessage(from, { text: '❌ Usage: /dl <video URL>' }, { quoted: msg });
+            } else {
+                await downloadVideo({ sock, msg, from, url, pushName });
+            }
+            break;
+        }
+
+        case 'joke':
+        case 'fact':
+        case 'quote':
+        case 'roast':
+        case 'compliment':
+        case 'riddle':
+        case 'story':
+        case 'poem':
+        case 'rap':
+        case 'meme':
+        case 'horoscope':
+        case 'trivia':
+        case 'dare':
+        case 'truth':
+            await handleFun({ sock, msg, from, cmd, args, pushName });
+            break;
+
+        case 'translate':
+            await aiChat({ sock, msg, from, pushName, query: `Translate this text. Detect language and translate to English (if already English translate to Arabic): "${args}"` });
+            break;
+        case 'calc':
+            await aiChat({ sock, msg, from, pushName, query: `Calculate and explain step by step: ${args}` });
+            break;
+        case 'define':
+            await aiChat({ sock, msg, from, pushName, query: `Define "${args}" with examples and fun facts.` });
+            break;
+        case 'summarize':
+            await aiChat({ sock, msg, from, pushName, query: `Summarize in 3-5 bullet points:\n${args}` });
+            break;
+        case 'code':
+            await aiChat({ sock, msg, from, pushName, query: `Write clean commented code for: ${args}` });
+            break;
+        case 'fix':
+            await aiChat({ sock, msg, from, pushName, query: `Fix bugs and explain this code:\n${args}` });
+            break;
+        case 'explain':
+            await aiChat({ sock, msg, from, pushName, query: `Explain simply like I'm 12: ${args}` });
+            break;
+        case 'recipe':
+            await aiChat({ sock, msg, from, pushName, query: `Give a detailed recipe for: ${args}` });
+            break;
+        case 'workout':
+            await aiChat({ sock, msg, from, pushName, query: `Create a workout plan for: ${args}` });
+            break;
+
+        default:
+            await aiChat({ sock, msg, from, query: input, pushName });
+            break;
+    }
+}
+
+module.exports = { handleCommand };
