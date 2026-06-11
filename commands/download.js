@@ -1,18 +1,25 @@
 const { exec } = require('child_process');
-const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
 function detectPlatform(url) {
     if (/youtube\.com|youtu\.be/.test(url)) return 'YouTube';
-    if (/tiktok\.com|vm\.tiktok\.com/.test(url)) return 'TikTok';
+    if (/tiktok\.com|vm\.tiktok\.com|vt\.tiktok\.com/.test(url)) return 'TikTok';
     if (/instagram\.com/.test(url)) return 'Instagram';
     if (/twitter\.com|x\.com/.test(url)) return 'Twitter/X';
     if (/facebook\.com|fb\.watch/.test(url)) return 'Facebook';
     return 'Video';
 }
 
+const validPlatforms = /youtube\.com|youtu\.be|tiktok\.com|instagram\.com|twitter\.com|x\.com|facebook\.com|fb\.watch|vt\.tiktok\.com|vm\.tiktok\.com/i;
+
 async function downloadVideo({ sock, msg, from, url, pushName }) {
+    // Validate FIRST before anything
+    if (!validPlatforms.test(url)) {
+        await sock.sendMessage(from, { text: '❌ Unsupported platform!\nSupported: YouTube, TikTok, Instagram, Twitter, Facebook' }, { quoted: msg });
+        return;
+    }
+
     const platform = detectPlatform(url);
 
     await sock.sendMessage(from, {
@@ -24,13 +31,6 @@ async function downloadVideo({ sock, msg, from, url, pushName }) {
     const before = new Set(fs.readdirSync(outputDir));
 
     const cmd = `yt-dlp "${url}" -o "${outputTemplate}" --format "best[filesize<50M]/best" --merge-output-format mp4 --no-playlist --socket-timeout 30`;
-
-    // Validate URL before downloading
-    const validPlatforms = /youtube\.com|youtu\.be|tiktok\.com|instagram\.com|twitter\.com|x\.com|facebook\.com|fb\.watch|vt\.tiktok\.com|vm\.tiktok\.com/i;
-    if (!validPlatforms.test(url)) {
-        await sock.sendMessage(from, { text: '❌ Unsupported platform!\nSupported: YouTube, TikTok, Instagram, Twitter, Facebook' }, { quoted: msg });
-        return;
-    }
 
     return new Promise((resolve) => {
         exec(cmd, { timeout: 120000 }, async (err, stdout, stderr) => {

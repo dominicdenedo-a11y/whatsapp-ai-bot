@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 
 const FUN_PROMPTS = {
     joke: (a) => `Tell me a funny joke${a ? ` about ${a}` : ''}. Make it genuinely funny with a good punchline.`,
@@ -18,9 +18,9 @@ const FUN_PROMPTS = {
 };
 
 async function handleFun({ sock, msg, from, cmd, args, pushName }) {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-        await sock.sendMessage(from, { text: '⚠️ Add GEMINI_API_KEY to .env!' }, { quoted: msg });
+        await sock.sendMessage(from, { text: '⚠️ Add GROQ_API_KEY to .env!' }, { quoted: msg });
         return;
     }
 
@@ -28,12 +28,17 @@ async function handleFun({ sock, msg, from, cmd, args, pushName }) {
     if (!promptFn) return;
 
     await sock.sendPresenceUpdate('composing', from);
+    await sock.sendMessage(from, { react: { text: '🎭', key: msg.key } });
 
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const result = await model.generateContent(promptFn(args));
-        const reply = result.response.text();
+        const groq = new Groq({ apiKey });
+        const response = await groq.chat.completions.create({
+            model: 'llama-3.1-8b-instant',
+            messages: [{ role: 'user', content: promptFn(args) }],
+            max_tokens: 1000,
+        });
+        const reply = response.choices[0].message.content;
+        await sock.sendMessage(from, { react: { text: '✅', key: msg.key } });
         await sock.sendMessage(from, { text: reply }, { quoted: msg });
     } catch (err) {
         await sock.sendMessage(from, { text: `❌ Error: ${err.message}` }, { quoted: msg });

@@ -8,7 +8,7 @@ const { showMenu } = require('./help');
 
 const URL_REGEX = /https?:\/\/[^\s]*/i;
 
-async function handleCommand({ sock, msg, from, text, pushName }) {
+async function handleCommand({ sock, msg, from, text, pushName, isVoice }) {
     const rawText = text.trim();
 
     if (msg.message?.imageMessage) {
@@ -120,6 +120,7 @@ async function handleCommand({ sock, msg, from, text, pushName }) {
 
         default:
             await aiChat({ sock, msg, from, query: input, pushName });
+            if (isVoice) await textToVoice({ sock, msg, from, text: input });
             break;
     }
 }

@@ -4,8 +4,9 @@ const path = require('path');
 const { exec } = require('child_process');
 
 async function textToVoice({ sock, msg, from, text }) {
-    const mp3Path = path.join('./downloads', `voice_${Date.now()}.mp3`);
-    const oggPath = mp3Path.replace('.mp3', '.ogg');
+    const timestamp = Date.now();
+    const mp3Path = path.join('./downloads', `voice_${timestamp}.mp3`);
+    const oggPath = path.join('./downloads', `voice_${timestamp}.ogg`);
 
     try {
         // Step 1: Generate mp3
@@ -17,11 +18,13 @@ async function textToVoice({ sock, msg, from, text }) {
             });
         });
 
-        // Step 2: Convert to ogg opus (WhatsApp voice format)
+        // Step 2: Convert to ogg opus with quoted paths
         await new Promise((resolve, reject) => {
-            exec(`ffmpeg -i ${mp3Path} -c:a libopus -b:a 24k ${oggPath} -y`, (err) => {
-                if (err) reject(err);
-                else resolve();
+            exec(`ffmpeg -i "${mp3Path}" -c:a libopus -b:a 24k "${oggPath}" -y`, (err, stdout, stderr) => {
+                if (err) {
+                    console.error('ffmpeg error:', stderr);
+                    reject(err);
+                } else resolve();
             });
         });
 
@@ -32,12 +35,13 @@ async function textToVoice({ sock, msg, from, text }) {
             ptt: true
         }, { quoted: msg });
 
+        console.log('Voice sent!');
+
     } catch (err) {
         console.error('Voice error:', err.message);
     } finally {
-        // Cleanup
-        try { fs.unlinkSync(mp3Path); } catch (_) {}
-        try { fs.unlinkSync(oggPath); } catch (_) {}
+        try { if (fs.existsSync(mp3Path)) fs.unlinkSync(mp3Path); } catch (_) {}
+        try { if (fs.existsSync(oggPath)) fs.unlinkSync(oggPath); } catch (_) {}
     }
 }
 

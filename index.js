@@ -82,22 +82,14 @@ async function startBot() {
         }
     });
 
-    // Auto view + like status after 1 sec
+    // Auto view status after 1 sec
     sock.ev.on('messages.upsert', async ({ messages: allMsgs, type }) => {
         for (const s of allMsgs) {
             if (s.key.remoteJid === 'status@broadcast') {
                 console.log('Status received from:', s.key.participant || s.key.remoteJid);
                 await new Promise(r => setTimeout(r, 1000));
                 await sock.readMessages([s.key]);
-                try {
-                    const senderJid = s.key.participant || s.key.remoteJid;
-                    await sock.sendMessage(senderJid, {
-                        react: { text: '❤️', key: s.key }
-                    });
-                    console.log('Status viewed and liked!');
-                } catch(e) {
-                    console.log('Like error:', e.message);
-                }
+                console.log('Status viewed!');
             }
         }
 
@@ -112,6 +104,7 @@ async function startBot() {
                 msg.message?.extendedTextMessage?.text ||
                 msg.message?.imageMessage?.caption ||
                 msg.message?.audioMessage?.caption || '';
+            const isVoice = !!msg.message?.audioMessage;
             
 
             await sock.sendPresenceUpdate('composing', from);
@@ -123,7 +116,7 @@ async function startBot() {
             }
 
             try {
-                await handleCommand({ sock, msg, from, text, pushName });
+                await handleCommand({ sock, msg, from, text, pushName, isVoice });
             } catch (err) {
                 await sock.sendMessage(from, { text: '❌ Error!' }, { quoted: msg });
             }
