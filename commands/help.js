@@ -24,9 +24,9 @@ async function showMenu({ sock, msg, from, pushName }) {
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 🖼️ *ɪᴍᴀɢᴇ ᴀɴᴀʟʏꜱɪꜱ*
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
-┃ _Just send any image!_
-┃ read • translate • food
-┃ plant • math • code • meme
+┃ _Send image with /caption_
+┃ */read* • */translate* • */food*
+┃ */plant* • */math* • */code* • */meme*
 
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 🛠️ *ᴜᴛɪʟɪᴛɪᴇꜱ*
@@ -43,6 +43,19 @@ async function showMenu({ sock, msg, from, pushName }) {
 ┃ */story* • */poem* • */rap* • */meme*
 ┃ */dare* • */truth* • */trivia*
 ┃ */horoscope <sign>*
+
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+👥 *ɢʀᴏᴜᴘ ᴄᴏᴍᴍᴀɴᴅꜱ*
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+┃ */kick @user* — Kick member
+┃ */add <number>* — Add member
+┃ */promote @user* — Make admin
+┃ */demote @user* — Remove admin
+┃ */mute* — Only admins can talk
+┃ */unmute* — Everyone can talk
+┃ */delete* — Reply to delete msg
+┃ */tagall* — Mention everyone
+┃ */groupinfo* — Show group info
 
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 📲 *ꜱᴏᴄɪᴀʟ ᴍᴇᴅɪᴀ*

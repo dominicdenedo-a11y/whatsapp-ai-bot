@@ -2,6 +2,7 @@ const { aiChat } = require('./ai');
 const { downloadVideo } = require('./download');
 const { analyzeImage } = require('./image');
 const { handleFun } = require('./fun');
+const { handleGroup } = require('./group');
 const { showMenu } = require('./help');
 
 const URL_REGEX = /https?:\/\/[^\s]*/i;
@@ -10,7 +11,7 @@ async function handleCommand({ sock, msg, from, text, pushName }) {
     const rawText = text.trim();
 
     if (msg.message?.imageMessage) {
-        if (!rawText) return;
+        if (!rawText || !rawText.startsWith('/')) return;
         await analyzeImage({ sock, msg, from, text: rawText, pushName });
         return;
     }
@@ -51,6 +52,18 @@ async function handleCommand({ sock, msg, from, text, pushName }) {
             }
             break;
         }
+
+        case 'kick':
+        case 'add':
+        case 'promote':
+        case 'demote':
+        case 'mute':
+        case 'unmute':
+        case 'delete':
+        case 'tagall':
+        case 'groupinfo':
+            await handleGroup({ sock, msg, from, cmd, args, pushName });
+            break;
 
         case 'joke':
         case 'fact':
