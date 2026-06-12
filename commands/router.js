@@ -8,7 +8,7 @@ const { showMenu } = require('./help');
 
 const URL_REGEX = /https?:\/\/[^\s]*/i;
 
-async function handleCommand({ sock, msg, from, text, pushName, isVoice }) {
+async function handleCommand({ sock, msg, from, text, pushName, isVoice = false }) {
     const rawText = text.trim();
 
     if (msg.message?.imageMessage) {

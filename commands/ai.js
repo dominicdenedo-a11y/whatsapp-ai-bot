@@ -27,7 +27,9 @@ async function aiChat({ sock, msg, from, query, pushName }) {
     try {
         const groq = new Groq({ apiKey });
 
-        const userKey = from;
+        // In groups use sender ID, in DMs use chat ID
+        const senderId = msg.key.participant || msg.key.remoteJid;
+        const userKey = from.endsWith('@g.us') ? senderId : from;
         if (!chatHistory.has(userKey)) chatHistory.set(userKey, []);
         chatTimestamps.set(userKey, Date.now());
         const history = chatHistory.get(userKey);
