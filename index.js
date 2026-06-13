@@ -5,8 +5,9 @@ const fs = require('fs');
 const readline = require('readline');
 const Groq = require('groq-sdk');
 const { handleCommand } = require('./commands/router');
-const { updateGroupContext } = require('./commands/ai');
+const { updateGroupContext, processImage, processVoice } = require('./commands/ai');
 const { transcribeVoice, textToVoice } = require('./commands/voice');
+
 
 if (!fs.existsSync('./downloads')) fs.mkdirSync('./downloads');
 if (!fs.existsSync('./auth_info')) fs.mkdirSync('./auth_info');
@@ -33,12 +34,13 @@ async function processMessage(sock, msg) {
 
     // Silently collect group messages for context
     if (from.endsWith('@g.us')) {
-        const msgText = msg.message?.conversation ||
-            msg.message?.extendedTextMessage?.text ||
-            msg.message?.imageMessage?.caption || '';
-        if (msgText && !msgText.startsWith('!')) {
-            updateGroupContext(sock, from, `${pushName}: ${msgText}`).catch(() => {});
-        }
+        try {
+            const msgText = msg.message?.conversation ||
+                msg.message?.extendedTextMessage?.text || '';
+            if (msgText && !msgText.startsWith('!')) {
+                updateGroupContext(sock, from, `${pushName}: ${msgText}`).catch(() => {});
+            }
+        } catch(_) {}
     }
 
     // Show typing for ALL messages
@@ -51,10 +53,9 @@ async function processMessage(sock, msg) {
         return;
     }
 
-    // Reply to voice with /reply -> transcribe and reply with voice
-    if (isReplyToVoice && text.toLowerCase().trim() === '/reply') {
+    // Reply to voice with !reply -> use unified brain
+    if (isReplyToVoice && text.toLowerCase().trim() === '!reply') {
         try {
-            await sock.sendMessage(from, { react: { text: '🎙️', key: msg.key } });
             const contextInfo = msg.message.extendedTextMessage.contextInfo;
             const quotedKey = {
                 key: {
@@ -65,26 +66,9 @@ async function processMessage(sock, msg) {
                 },
                 message: quotedMsg
             };
-            const audioBuffer = await downloadMediaMessage(quotedKey, 'buffer', {}, { reuploadRequest: sock.updateMediaMessage });
-            const transcribed = await transcribeVoice(audioBuffer);
-            if (transcribed) {
-                const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-                const response = await groq.chat.completions.create({
-                    model: 'llama-3.1-8b-instant',
-                    messages: [
-                        { role: 'system', content: `You are Espirito, a helpful witty assistant. Keep responses short. User's name is ${pushName}.` },
-                        { role: 'user', content: transcribed }
-                    ],
-                    max_tokens: 200,
-                });
-                const reply = response.choices[0].message.content;
-                const sent = await textToVoice({ sock, msg, from, text: reply });
-                if (!sent) {
-                    await sock.sendMessage(from, { text: reply }, { quoted: msg });
-                }
-            } else {
-                await sock.sendMessage(from, { text: '❌ Could not transcribe the voice message.' }, { quoted: msg });
-            }
+            // Create a fake msg with the quoted audio for processVoice
+            const voiceMsg = { ...msg, message: quotedMsg, key: { ...msg.key, id: contextInfo.stanzaId } };
+            await processVoice({ sock, msg: voiceMsg, from, pushName });
         } catch(e) {
             console.error('Voice reply error:', e.message);
             await sock.sendMessage(from, { text: '❌ Error: ' + e.message }, { quoted: msg });
@@ -100,10 +84,14 @@ async function processMessage(sock, msg) {
         return;
     }
 
+    const quotedText = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.conversation ||
+        msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.extendedTextMessage?.text || '';
+
     try {
         await handleCommand({ sock, msg, from, text, pushName, isVoice, quotedText });
     } catch (err) {
-        await sock.sendMessage(from, { text: '❌ Error!' }, { quoted: msg });
+        console.error('COMMAND ERROR:', err.message, err.stack);
+        await sock.sendMessage(from, { text: '❌ Error: ' + err.message }, { quoted: msg });
     }
     await sock.sendPresenceUpdate('available', from);
 }
@@ -190,7 +178,7 @@ async function startBot() {
 
         // Process each message independently - non blocking
         for (const msg of allMsgs) {
-            console.log("MSG RECEIVED:", msg.key.remoteJid); processMessage(sock, msg).catch(e => console.error('Msg error:', e.message));
+            processMessage(sock, msg).catch(e => console.error('Msg error:', e.message));
         }
     });
 }

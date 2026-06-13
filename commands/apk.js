@@ -22,21 +22,23 @@ async function fetchApkInfo(url) {
         });
         const $ = cheerio.load(res.data);
 
-        // Extract version and download link
-        const version = $('span:contains("Version")').next().text().trim() ||
-                       $('td:contains("Version")').next().text().trim() ||
-                       $('[class*="version"]').first().text().trim() ||
-                       'Latest';
+        // Extract version from H1 title
+        const h1 = $('h1').first().text().trim();
+        const versionMatch = h1.match(/v[d.]+/);
+        const version = versionMatch ? versionMatch[0] : 'Latest';
 
-        const downloadLink = $('a[href*="download"]').first().attr('href') ||
-                            $('a.download-btn').first().attr('href') ||
-                            url;
+        // Extract size
+        const sizeMatch = res.data.match(/(d+.?d*s*MB)/i);
+        const size = sizeMatch ? sizeMatch[1] : 'Unknown';
 
-        const size = $('span:contains("Size")').next().text().trim() ||
-                    $('td:contains("Size")').next().text().trim() ||
-                    'Unknown';
+        // Get download link
+        const downloadLink = $('a.btn-download, a[href*="download"], a.download').first().attr('href') || url;
 
-        return { version, size, downloadLink: downloadLink.startsWith('http') ? downloadLink : url };
+        return { 
+            version, 
+            size, 
+            downloadLink: downloadLink.startsWith('http') ? downloadLink : url 
+        };
     } catch (e) {
         console.error('Fetch error:', e.message);
         return { version: 'Latest', size: 'Unknown', downloadLink: url };

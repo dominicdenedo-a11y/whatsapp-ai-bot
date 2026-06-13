@@ -30,7 +30,7 @@ async function textToVoice({ sock, msg, from, text }) {
         // Step 1: Generate mp3 with 10 second timeout
         await Promise.race([
             new Promise((resolve, reject) => {
-                const gtts = new gTTS(text, 'en', true, null, null, null, 1);
+                const gtts = new gTTS(text, 'en');
                 gtts.save(mp3Path, (err) => {
                     if (err) reject(err);
                     else resolve();

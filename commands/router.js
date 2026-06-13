@@ -1,6 +1,6 @@
 const { aiChat } = require('./ai');
 const { downloadVideo } = require('./download');
-const { analyzeImage } = require('./image');
+const { processImage } = require('./ai');
 const { handleFun } = require('./fun');
 const { handleGroup } = require('./group');
 const { handleApk } = require('./apk');
@@ -19,7 +19,7 @@ async function handleCommand({ sock, msg, from, text, pushName, isVoice = false,
 
     if (msg.message?.imageMessage) {
         if (!rawText || !rawText.startsWith('!')) return;
-        await analyzeImage({ sock, msg, from, text: rawText, pushName });
+        await processImage({ sock, msg, from, caption: rawText, pushName });
         return;
     }
 
@@ -50,9 +50,13 @@ async function handleCommand({ sock, msg, from, text, pushName, isVoice = false,
     switch (cmd) {
         case 'ai':
         case 'ask':
-        case 'chat':
-            await aiChat({ sock, msg, from, query: args || 'Hello!', pushName });
+        case 'chat': {
+            const q = quotedText ? `Context: "${quotedText}"
+
+User: ${args || 'Hello!'}` : args || 'Hello!';
+            await aiChat({ sock, msg, from, query: q, pushName });
             break;
+        }
 
         case 'dl':
         case 'download':
@@ -68,6 +72,10 @@ async function handleCommand({ sock, msg, from, text, pushName, isVoice = false,
 
         case 'apk':
             await handleApk({ sock, msg, from, args, pushName });
+            break;
+
+        case 'reply':
+            // Handled in index.js voice handler - ignore here
             break;
 
         case 'kick':
