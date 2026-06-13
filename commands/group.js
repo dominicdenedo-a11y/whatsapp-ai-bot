@@ -21,12 +21,12 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
     switch (cmd) {
         case 'kick': {
             if (!mentioned) {
-                await sock.sendMessage(from, { text: '❌ Tag someone to kick! Example: /kick @user' }, { quoted: msg });
+                await sock.sendMessage(from, { text: '❌ Tag someone to kick! Example: !kick @user' }, { quoted: msg });
                 return;
             }
             try {
                 await sock.groupParticipantsUpdate(from, [mentioned], 'remove');
-                await sock.sendMessage(from, { text: `✅ *${mentioned.split('@')[0]}* has been kicked!` }, { quoted: msg });
+                await sock.sendMessage(from, { text: `✅ *${mentioned.split('@')[0].slice(-10)}* has been kicked!` }, { quoted: msg });
             } catch(e) {
                 await sock.sendMessage(from, { text: `❌ Failed: ${e.message}` }, { quoted: msg });
             }
@@ -35,7 +35,7 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
 
         case 'add': {
             if (!args) {
-                await sock.sendMessage(from, { text: '❌ Provide a number! Example: /add 255xxxxxxxxx' }, { quoted: msg });
+                await sock.sendMessage(from, { text: '❌ Provide a number! Example: !add 255xxxxxxxxx' }, { quoted: msg });
                 return;
             }
             const number = args.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
@@ -66,7 +66,7 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
             }
             try {
                 await sock.groupParticipantsUpdate(from, [mentioned], 'promote');
-                await sock.sendMessage(from, { text: `⬆️ *${mentioned.split('@')[0]}* is now an admin!` }, { quoted: msg });
+                await sock.sendMessage(from, { text: `⬆️ *${mentioned.split('@')[0].slice(-10)}* is now an admin!` }, { quoted: msg });
             } catch(e) {
                 await sock.sendMessage(from, { text: `❌ Failed: ${e.message}` }, { quoted: msg });
             }
@@ -80,7 +80,7 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
             }
             try {
                 await sock.groupParticipantsUpdate(from, [mentioned], 'demote');
-                await sock.sendMessage(from, { text: `⬇️ *${mentioned.split('@')[0]}* is no longer an admin!` }, { quoted: msg });
+                await sock.sendMessage(from, { text: `⬇️ *${mentioned.split('@')[0].slice(-10)}* is no longer an admin!` }, { quoted: msg });
             } catch(e) {
                 await sock.sendMessage(from, { text: `❌ Failed: ${e.message}` }, { quoted: msg });
             }

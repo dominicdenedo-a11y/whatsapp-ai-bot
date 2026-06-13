@@ -5,6 +5,7 @@ const fs = require('fs');
 const readline = require('readline');
 const Groq = require('groq-sdk');
 const { handleCommand } = require('./commands/router');
+const { updateGroupContext } = require('./commands/ai');
 const { transcribeVoice, textToVoice } = require('./commands/voice');
 
 if (!fs.existsSync('./downloads')) fs.mkdirSync('./downloads');
@@ -17,7 +18,7 @@ async function getInput(prompt) {
 
 async function processMessage(sock, msg) {
     if (!msg.message || msg.key.fromMe) return;
-    if (msg.key.remoteJid === 'status@broadcast') return;
+    if (msg.key.remoteJid === "status@broadcast") return;
 
     const from = msg.key.remoteJid;
     const pushName = msg.pushName || 'User';
@@ -29,6 +30,16 @@ async function processMessage(sock, msg) {
         msg.message?.conversation ||
         msg.message?.extendedTextMessage?.text ||
         msg.message?.imageMessage?.caption || '';
+
+    // Silently collect group messages for context
+    if (from.endsWith('@g.us')) {
+        const msgText = msg.message?.conversation ||
+            msg.message?.extendedTextMessage?.text ||
+            msg.message?.imageMessage?.caption || '';
+        if (msgText && !msgText.startsWith('!')) {
+            updateGroupContext(sock, from, `${pushName}: ${msgText}`).catch(() => {});
+        }
+    }
 
     // Show typing for ALL messages
     await sock.sendPresenceUpdate('composing', from);
@@ -83,14 +94,14 @@ async function processMessage(sock, msg) {
     }
 
     // Normal text with no command and no image -> 30sec typing then ignore
-    if (!text.startsWith('/') && !msg.message?.imageMessage) {
+    if (!text.startsWith('!') && !msg.message?.imageMessage) {
         await new Promise(r => setTimeout(r, 30000));
         await sock.sendPresenceUpdate('available', from);
         return;
     }
 
     try {
-        await handleCommand({ sock, msg, from, text, pushName, isVoice });
+        await handleCommand({ sock, msg, from, text, pushName, isVoice, quotedText });
     } catch (err) {
         await sock.sendMessage(from, { text: '❌ Error!' }, { quoted: msg });
     }
@@ -148,7 +159,7 @@ async function startBot() {
         }
 
         if (connection === 'open') {
-            console.log('\n✅ Bot ONLINE! Send / in WhatsApp!\n');
+            console.log('\n✅ Bot ONLINE! Send ! in WhatsApp!\n');
         }
 
         if (connection === 'close') {
@@ -179,7 +190,7 @@ async function startBot() {
 
         // Process each message independently - non blocking
         for (const msg of allMsgs) {
-            processMessage(sock, msg).catch(e => console.error('Msg error:', e.message));
+            console.log("MSG RECEIVED:", msg.key.remoteJid); processMessage(sock, msg).catch(e => console.error('Msg error:', e.message));
         }
     });
 }

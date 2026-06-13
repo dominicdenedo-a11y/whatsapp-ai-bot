@@ -3,21 +3,27 @@ const { downloadVideo } = require('./download');
 const { analyzeImage } = require('./image');
 const { handleFun } = require('./fun');
 const { handleGroup } = require('./group');
+const { handleApk } = require('./apk');
 const { textToVoice } = require('./voice');
 const { showMenu } = require('./help');
 
 const URL_REGEX = /https?:\/\/[^\s]*/i;
 
-async function handleCommand({ sock, msg, from, text, pushName, isVoice = false }) {
+async function handleCommand({ sock, msg, from, text, pushName, isVoice = false, quotedText = '' }) {
+    // Helper to get clean name from JID
+    const getMentionName = (jid) => {
+        const num = jid?.split('@')[0] || jid;
+        return num.length > 10 ? num.slice(-6) : num;
+    };
     const rawText = text.trim();
 
     if (msg.message?.imageMessage) {
-        if (!rawText || !rawText.startsWith('/')) return;
+        if (!rawText || !rawText.startsWith('!')) return;
         await analyzeImage({ sock, msg, from, text: rawText, pushName });
         return;
     }
 
-    if (!rawText.startsWith('/')) return;
+    if (!rawText.startsWith('!')) return;
 
     const input = rawText.slice(1).trim();
     const parts = input.split(/\s+/);
@@ -59,6 +65,10 @@ async function handleCommand({ sock, msg, from, text, pushName, isVoice = false 
             }
             break;
         }
+
+        case 'apk':
+            await handleApk({ sock, msg, from, args, pushName });
+            break;
 
         case 'kick':
         case 'add':
@@ -118,10 +128,14 @@ async function handleCommand({ sock, msg, from, text, pushName, isVoice = false 
             await aiChat({ sock, msg, from, pushName, query: `Create a workout plan for: ${args}` });
             break;
 
-        default:
-            await aiChat({ sock, msg, from, query: input, pushName });
+        default: {
+            const fullQuery = quotedText ? `Context (quoted message): "${quotedText}"
+
+User says: ${input}` : input;
+            await aiChat({ sock, msg, from, query: fullQuery, pushName });
             if (isVoice) await textToVoice({ sock, msg, from, text: input });
             break;
+        }
     }
 }
 

@@ -40,7 +40,7 @@ async function analyzeImage({ sock, msg, from, text, pushName }) {
 }
 
 function buildPrompt(caption) {
-    const cap = (caption || '').toLowerCase().replace(/^\/\s*/, '');
+    const cap = (caption || '').toLowerCase().replace(/^[!/]\s*/, '');
     if (!cap || cap === 'analyze') return 'Analyze this image in detail. Describe everything you see.';
     if (cap.includes('text') || cap.includes('read')) return 'Extract all text from this image clearly.';
     if (cap.includes('translate')) return 'Extract all text and translate it to English.';
