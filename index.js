@@ -5,6 +5,7 @@ const fs = require('fs');
 const readline = require('readline');
 const Groq = require('groq-sdk');
 const { handleCommand } = require('./commands/router');
+const nameCache = new Map(); // stores JID -> name
 const { updateGroupContext, processImage, processVoice } = require('./commands/ai');
 const { transcribeVoice, textToVoice } = require('./commands/voice');
 
@@ -22,6 +23,9 @@ async function processMessage(sock, msg) {
     if (msg.key.remoteJid === "status@broadcast") return;
 
     const from = msg.key.remoteJid;
+    // Save sender name to cache
+    const senderId = msg.key.participant || msg.key.remoteJid;
+    if (msg.pushName) nameCache.set(senderId.split('@')[0], msg.pushName);
     const pushName = msg.pushName || 'User';
     const isVoice = !!msg.message?.audioMessage;
     const quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
@@ -82,6 +86,14 @@ async function processMessage(sock, msg) {
         await new Promise(r => setTimeout(r, 30000));
         await sock.sendPresenceUpdate('available', from);
         return;
+    }
+
+    // Get mentioned person's name from context
+    const mentionedJids = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    const mentionedNames = {};
+    for (const jid of mentionedJids) {
+        const num = jid.split('@')[0];
+        mentionedNames[num] = pushName; // fallback to sender name
     }
 
     const quotedText = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.conversation ||
