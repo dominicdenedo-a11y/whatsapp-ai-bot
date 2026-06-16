@@ -24,9 +24,10 @@ Step 2 - Run in Termux:
 pkg update -y && pkg install git nodejs python ffmpeg -y && pip install yt-dlp --break-system-packages
 
 Step 3 - Clone and install:
-git clone https://github.com/dominicdenedo-a11y/whatsapp-ai-bot.git
+git clone
+```https://github.com/dominicdenedo-a11y/whatsapp-ai-bot.git
 cd whatsapp-ai-bot
-npm install
+npm install'''
 
 Step 4 - Add Groq API key:
 echo "GROQ_API_KEY=your_key_here" > .env
