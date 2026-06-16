@@ -75,6 +75,20 @@ All commands start with !
 
 | Command | Description |
 |---------|-------------|
+| `!menu` | Show all commands |
+| `!ai question` | Chat with Mia |
+| `!joke` | Tell a joke |
+| `!roast @user` | Roast someone |
+| `!dl url` | Download video |
+| `!apk spotify` | Get Spotify APK |
+| `!translate text` | Translate text |
+| `!calc 5+5` | Calculator |
+| `!tagall` | Tag everyone (admin) |
+| `!kick @user` | Kick member (admin) |
+| `!antilink on` | Block links (admin) |
+| `!welcome on` | Auto welcome (admin) |
+| `!poll Q, A, B, C` | Create poll (admin) |
+| `!reply` | Reply to voice message |
 
 ---
 
