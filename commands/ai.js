@@ -1,5 +1,6 @@
 const Groq = require('groq-sdk');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
+const { transcribeVoice, textToVoice } = require('./voice');
 
 const chatHistory = new Map();
 const chatTimestamps = new Map();
@@ -184,8 +185,6 @@ async function processImage({ sock, msg, from, caption, pushName }) {
 async function processVoice({ sock, msg, from, pushName }) {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) return;
-
-    const { transcribeVoice, textToVoice } = require('./voice');
 
     await sock.sendMessage(from, { react: { text: '🎙️', key: msg.key } });
     await sock.sendPresenceUpdate('composing', from);

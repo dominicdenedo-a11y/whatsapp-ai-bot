@@ -1,4 +1,9 @@
-async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
+function getName(jid, nameCache) {
+    const num = jid?.split('@')[0] || '';
+    return (nameCache && nameCache.get(num)) || num.slice(-8);
+}
+
+async function handleGroup({ sock, msg, from, cmd, args, pushName, nameCache = new Map() }) {
     const isGroup = from.endsWith('@g.us');
     if (!isGroup) {
         await sock.sendMessage(from, { text: '❌ This command only works in groups!' }, { quoted: msg });
@@ -26,7 +31,7 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
             }
             try {
                 await sock.groupParticipantsUpdate(from, [mentioned], 'remove');
-                await sock.sendMessage(from, { text: `✅ *${mentioned.split('@')[0].slice(-10)}* has been kicked!` }, { quoted: msg });
+                await sock.sendMessage(from, { text: `✅ *${getName(mentioned, nameCache)}* has been kicked!` }, { quoted: msg });
             } catch(e) {
                 await sock.sendMessage(from, { text: `❌ Failed: ${e.message}` }, { quoted: msg });
             }
@@ -66,7 +71,7 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
             }
             try {
                 await sock.groupParticipantsUpdate(from, [mentioned], 'promote');
-                await sock.sendMessage(from, { text: `⬆️ *${mentioned.split('@')[0].slice(-10)}* is now an admin!` }, { quoted: msg });
+                await sock.sendMessage(from, { text: `⬆️ *${getName(mentioned, nameCache)}* is now an admin!` }, { quoted: msg });
             } catch(e) {
                 await sock.sendMessage(from, { text: `❌ Failed: ${e.message}` }, { quoted: msg });
             }
@@ -80,7 +85,7 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName }) {
             }
             try {
                 await sock.groupParticipantsUpdate(from, [mentioned], 'demote');
-                await sock.sendMessage(from, { text: `⬇️ *${mentioned.split('@')[0].slice(-10)}* is no longer an admin!` }, { quoted: msg });
+                await sock.sendMessage(from, { text: `⬇️ *${getName(mentioned, nameCache)}* is no longer an admin!` }, { quoted: msg });
             } catch(e) {
                 await sock.sendMessage(from, { text: `❌ Failed: ${e.message}` }, { quoted: msg });
             }

@@ -7,6 +7,7 @@ const Groq = require('groq-sdk');
 const { handleCommand } = require('./commands/router');
 const nameCache = new Map(); // stores JID -> name
 const { updateGroupContext, processImage, processVoice } = require('./commands/ai');
+const { handleWelcome, handleAntiLink, getSettings } = require('./commands/groupfeatures');
 const { transcribeVoice, textToVoice } = require('./commands/voice');
 
 
@@ -19,6 +20,7 @@ async function getInput(prompt) {
 }
 
 async function processMessage(sock, msg) {
+    console.log('PROCESS MSG:', msg.key.remoteJid, Object.keys(msg.message || {}));
     if (!msg.message || msg.key.fromMe) return;
     if (msg.key.remoteJid === "status@broadcast") return;
 
@@ -81,6 +83,28 @@ async function processMessage(sock, msg) {
         return;
     }
 
+    console.log('TEXT EXTRACTED:', text);
+    // Anti-link check FIRST before 30sec typing
+    if (from.endsWith('@g.us') && text && !text.startsWith('!')) {
+        try {
+            const groupMeta = await sock.groupMetadata(from);
+            const senderId = msg.key.participant || msg.key.remoteJid;
+            const senderParticipant = groupMeta.participants.find(p => p.id === senderId);
+            const senderAdmin = senderParticipant?.admin === 'admin' || senderParticipant?.admin === 'superadmin';
+            const botPhone = sock.user.id.split(':')[0].split('@')[0];
+            // Try both phone number and LID format
+            const botParticipant = groupMeta.participants.find(p => 
+                p.id.includes(botPhone) || 
+                p.phoneNumber?.includes(botPhone) ||
+                p.id === sock.user.id.replace(/:.*@/, '@')
+            );
+            const botAdmin = botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
+            console.log('ANTILINK:', { senderAdmin, botAdmin, botPhone, botParticipant: botParticipant?.id });
+            const deleted = await handleAntiLink(sock, msg, from, text, senderAdmin, botAdmin);
+            if (deleted) return;
+        } catch(_) {}
+    }
+
     // Normal text with no command and no image -> 30sec typing then ignore
     if (!text.startsWith('!') && !msg.message?.imageMessage) {
         await new Promise(r => setTimeout(r, 30000));
@@ -99,6 +123,8 @@ async function processMessage(sock, msg) {
     const quotedText = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.conversation ||
         msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.extendedTextMessage?.text || '';
 
+
+
     try {
         await handleCommand({ sock, msg, from, text, pushName, isVoice, quotedText });
     } catch (err) {
@@ -107,6 +133,8 @@ async function processMessage(sock, msg) {
     }
     await sock.sendPresenceUpdate('available', from);
 }
+
+let reconnectCount = 0;
 
 async function startBot() {
     const { state, saveCreds } = await useMultiFileAuthState('./auth_info');
@@ -159,6 +187,7 @@ async function startBot() {
         }
 
         if (connection === 'open') {
+            reconnectCount = 0;
             console.log('\n✅ Bot ONLINE! Send ! in WhatsApp!\n');
         }
 
@@ -169,11 +198,23 @@ async function startBot() {
                 console.log('Logged out! Delete auth_info and restart.');
             } else if (state.creds.registered) {
                 console.log('Reconnecting...');
-                setTimeout(startBot, 3000);
+                // Exponential backoff - wait longer each time
+                const delay = Math.min(3000 * Math.pow(1.5, reconnectCount), 60000);
+                reconnectCount++;
+                console.log(`Waiting ${delay}ms before reconnect...`);
+                setTimeout(startBot, delay);
             } else {
                 console.log('Run npm start to try again.');
                 process.exit(0);
             }
+        }
+    });
+
+    // Auto welcome new members
+    sock.ev.on('group-participants.update', async ({ id, participants, action }) => {
+        console.log('GROUP EVENT:', action, participants);
+        if (action === 'add') {
+            await handleWelcome(sock, id, participants);
         }
     });
 

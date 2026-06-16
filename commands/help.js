@@ -56,6 +56,12 @@ async function showMenu({ sock, msg, from, pushName }) {
 ┃ *!delete* — Reply to delete msg
 ┃ *!tagall* — Mention everyone
 ┃ *!groupinfo* — Show group info
+┃ *!antilink on/off* — Block links
+┃ *!welcome on/off* — Welcome members
+┃ *!poll Q, A, B, C* — Create poll
+┃ *!antilink on/off* — Block links
+┃ *!welcome on/off* — Welcome members
+┃ *!poll Q, A, B, C* — Create poll
 
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 📦 *ᴘʀᴇᴍɪᴜᴍ ᴀᴘᴋꜱ*

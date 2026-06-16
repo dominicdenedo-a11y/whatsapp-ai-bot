@@ -3,13 +3,14 @@ const { downloadVideo } = require('./download');
 const { processImage } = require('./ai');
 const { handleFun } = require('./fun');
 const { handleGroup } = require('./group');
+const { handleGroupFeatures } = require('./groupfeatures');
 const { handleApk } = require('./apk');
 const { textToVoice } = require('./voice');
 const { showMenu } = require('./help');
 
 const URL_REGEX = /https?:\/\/[^\s]*/i;
 
-async function handleCommand({ sock, msg, from, text, pushName, isVoice = false, quotedText = '' }) {
+async function handleCommand({ sock, msg, from, text, pushName, isVoice = false, quotedText = '', nameCache = new Map() }) {
     // Helper to get clean name from JID
     const getMentionName = (jid) => {
         const num = jid?.split('@')[0] || jid;
@@ -78,6 +79,12 @@ User: ${args || 'Hello!'}` : args || 'Hello!';
             // Handled in index.js voice handler - ignore here
             break;
 
+        case 'antilink':
+        case 'welcome':
+        case 'poll':
+            await handleGroupFeatures({ sock, msg, from, cmd, args, pushName });
+            break;
+
         case 'kick':
         case 'add':
         case 'promote':
@@ -87,7 +94,7 @@ User: ${args || 'Hello!'}` : args || 'Hello!';
         case 'delete':
         case 'tagall':
         case 'groupinfo':
-            await handleGroup({ sock, msg, from, cmd, args, pushName });
+            await handleGroup({ sock, msg, from, cmd, args, pushName, nameCache });
             break;
 
         case 'joke':
