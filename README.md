@@ -58,6 +58,7 @@ node index.js
 Enter your number with country code (e.g. 255773189300), get pairing code, open WhatsApp → 3 dots → Linked Devices → Link with phone number → Enter code immediately
 
 ### 7️⃣ Keep Running 24/7
+start by ctrc then c
 
 ```bash
 npm install -g pm2
