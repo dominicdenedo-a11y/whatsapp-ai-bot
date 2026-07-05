@@ -43,7 +43,7 @@ async function handleCommand({ sock, msg, from, text, pushName, isVoice = false,
         await downloadVideo({ sock, msg, from, url: urlMatch[0], pushName });
         return;
     }
-    if (urlMatch && (rawText.slice(1).trim() === urlMatch[0] || rawText.slice(1).trim().startsWith(urlMatch[0])) && !isDownloadCmd && !['ai','ask','chat','translate','calc','define','summarize','code','fix','explain','recipe','workout'].includes(cmd)) {
+    if (urlMatch && (rawText.slice(1).trim() === urlMatch[0] || rawText.slice(1).trim().startsWith(urlMatch[0])) && !isDownloadCmd && !['ai','ask','chat','translate','calc','define','summarize','code','fix','fixcode','explain','recipe','workout'].includes(cmd)) {
         await downloadVideo({ sock, msg, from, url: urlMatch[0], pushName });
         return;
     }
