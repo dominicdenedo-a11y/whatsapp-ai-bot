@@ -139,7 +139,7 @@ async function handleGroup({ sock, msg, from, cmd, args, pushName, nameCache = n
         }
 
         case 'groupinfo': {
-            const text = `📊 *Group Info*\n\n*Name:* ${groupMetadata.subject}\n*Members:* ${groupMetadata.participants.length}\n*Admins:* ${groupMetadata.participants.filter(p => p.admin).length}\n*Created:* ${new Date(groupMetadata.creation * 1000).toLocaleDateString()}`;
+            const text = `📊 *Group Info*\n\n*Name:* ${groupMetadata.subject}\n*Members:* ${groupMetadata.participants.length}\n*Admins:* ${groupMetadata.participants.filter(p => p.admin).length}`;
             await sock.sendMessage(from, { text }, { quoted: msg });
             break;
         }
