@@ -1,3 +1,4 @@
+const fs = require('fs');
 const groupSettings = new Map();
 const settingsFile = './downloads/groupsettings.json';
 
