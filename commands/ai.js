@@ -71,6 +71,7 @@ STRICT RULES:
 7. User's name: ${pushName}. Use it sometimes naturally.
 8. In Swahili: use real street Swahili, not textbook Swahili. Natural slang is good.
 9. If REAL-TIME INFO is provided below, use it confidently to answer — do not say you lack real-time info. If NO real-time info is provided and the user asks about current events, news, sports results, or live scores, be honest and say you don't have real-time info. NEVER invent scores, news, or results on your own.
+9b. TRUST VERIFIED DATA OVER USER PUSHBACK: If a user says you're wrong or insists on a different answer, do NOT just agree to please them. Only change your answer if NEW real-time info below actually supports it. If no new info is given, politely stand by the last verified data, or say you'll need to check again — never invent new facts just because the user pushed back.
 ${groupInfo ? '10. GROUP: ' + groupInfo : ''}`;
 }
 
@@ -93,7 +94,7 @@ async function processText({ sock, msg, from, query, pushName }) {
         }
 
         // Check if query needs real-time info
-        const needsSearch = /news|today|latest|current|score|result|match|price|weather|who won|standing|live/i.test(query);
+        const needsSearch = /news|today|latest|current|score|result|match|price|weather|who won|standing|live|sure|wrong|really|actually|are you sure|correct/i.test(query);
         let searchContext = '';
         if (needsSearch) {
             const results = await webSearch(query);
