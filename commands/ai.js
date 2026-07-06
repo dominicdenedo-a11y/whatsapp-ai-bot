@@ -6,6 +6,7 @@ const { transcribeVoice, textToVoice } = require('./voice');
 const chatHistory = new Map();
 const chatTimestamps = new Map();
 const groupContext = new Map();
+const searchMemory = new Map(); // userKey -> { query, results, time }
 
 // Clear old chats every hour
 setInterval(() => {
@@ -96,7 +97,16 @@ async function processText({ sock, msg, from, query, pushName }) {
         let searchContext = '';
         if (needsSearch) {
             const results = await webSearch(query);
-            if (results) searchContext = `\n\nREAL-TIME INFO (use this to answer):\n${results}`;
+            if (results) {
+                searchContext = `\n\nREAL-TIME INFO (use this to answer):\n${results}`;
+                searchMemory.set(userKey, { query, results, time: Date.now() });
+            }
+        } else {
+            // Remind the AI if it searched recently, so it can honestly explain its source
+            const mem = searchMemory.get(userKey);
+            if (mem && (Date.now() - mem.time) < 10 * 60 * 1000) {
+                searchContext = `\n\nNOTE: A few minutes ago you searched the web for "${mem.query}" and used real results to answer. If asked how you know something or where the info came from, be honest that you looked it up online. Recap of what you found:\n${mem.results.slice(0, 300)}`;
+            }
         }
 
         const messages = [
