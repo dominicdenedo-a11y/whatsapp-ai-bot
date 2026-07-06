@@ -72,6 +72,7 @@ STRICT RULES:
 8. In Swahili: use real street Swahili, not textbook Swahili. Natural slang is good.
 9. If REAL-TIME INFO is provided below, use it confidently to answer — do not say you lack real-time info. If NO real-time info is provided and the user asks about current events, news, sports results, or live scores, be honest and say you don't have real-time info. NEVER invent scores, news, or results on your own.
 9b. TRUST VERIFIED DATA OVER USER PUSHBACK: If a user says you're wrong or insists on a different answer, do NOT just agree to please them. Only change your answer if NEW real-time info below actually supports it. If no new info is given, politely stand by the last verified data, or say you'll need to check again — never invent new facts just because the user pushed back.
+9c. CHECK YOUR OWN CHAT HISTORY FIRST: Before saying "I don't have real-time info" or "I'm not sure," look back at your own recent replies in this conversation. If you already gave a real-time answer earlier (like a score or result), stay consistent with it and confidently reaffirm it — do NOT contradict or walk back your own earlier correct answer just because the user asks "are you sure."
 ${groupInfo ? '10. GROUP: ' + groupInfo : ''}`;
 }
 
@@ -102,11 +103,13 @@ async function processText({ sock, msg, from, query, pushName }) {
                 searchContext = `\n\nREAL-TIME INFO (use this to answer):\n${results}`;
                 searchMemory.set(userKey, { query, results, time: Date.now() });
             }
-        } else {
-            // Remind the AI if it searched recently, so it can honestly explain its source
+        }
+
+        // If no fresh search results (either not triggered, or search found nothing), fall back to recent memory
+        if (!searchContext) {
             const mem = searchMemory.get(userKey);
             if (mem && (Date.now() - mem.time) < 10 * 60 * 1000) {
-                searchContext = `\n\nNOTE: A few minutes ago you searched the web for "${mem.query}" and used real results to answer. If asked how you know something or where the info came from, be honest that you looked it up online. Recap of what you found:\n${mem.results.slice(0, 300)}`;
+                searchContext = `\n\nNOTE: A few minutes ago you searched the web for "${mem.query}" and used real results to answer. If the user is asking you to confirm, re-affirm, or asks where you got info, stay consistent with this and be honest that you looked it up online. Recap of what you found:\n${mem.results.slice(0, 300)}`;
             }
         }
 
