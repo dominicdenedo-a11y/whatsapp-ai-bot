@@ -6,11 +6,12 @@ async function webSearch(query) {
             api_key: process.env.TAVILY_KEY,
             query,
             max_results: 3,
-            search_depth: 'basic'
+            search_depth: 'advanced', include_answer: true
         }, { timeout: 10000 });
 
         if (res.data.results && res.data.results.length > 0) {
-            return res.data.results.map(r => `${r.title}: ${r.content.slice(0, 200)}`).join('\n\n');
+            const answerPart = res.data.answer ? `Direct answer: ${res.data.answer}\n\n` : '';
+            return answerPart + res.data.results.map(r => `${r.title}: ${r.content.slice(0, 500)}`).join('\n\n');
         }
     } catch (e) {
         console.error('Search error:', e.message);
