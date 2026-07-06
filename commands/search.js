@@ -22,7 +22,8 @@ async function webSearch(query) {
         searchGdelt(query),
         searchWikipedia(query),
         searchDuckDuckGo(query),
-        searchSportsDB(query)
+        searchSportsDB(query),
+        searchFootballData(query)
     ]);
     const combined = fallbacks.filter(Boolean).join('\n\n');
     return combined || null;
@@ -99,4 +100,32 @@ async function searchSportsDB(query) {
     }
 }
 
-module.exports = { webSearch, searchGdelt, searchWikipedia, searchDuckDuckGo, searchSportsDB };
+
+async function searchFootballData(query) {
+    try {
+        const res = await axios.get('https://api.football-data.org/v4/matches', {
+            headers: { 'X-Auth-Token': process.env.FOOTBALL_DATA_KEY },
+            params: { dateFrom: new Date(Date.now() - 2*24*60*60*1000).toISOString().slice(0,10), dateTo: new Date().toISOString().slice(0,10) },
+            timeout: 8000
+        });
+        const matches = res.data?.matches;
+        if (!matches || matches.length === 0) return null;
+
+        // Try to find matches relevant to the query (basic keyword match on team names)
+        const q = query.toLowerCase();
+        const relevant = matches.filter(m =>
+            q.includes(m.homeTeam.name.toLowerCase().split(' ')[0]) ||
+            q.includes(m.awayTeam.name.toLowerCase().split(' ')[0])
+        );
+        const toShow = relevant.length > 0 ? relevant : matches.slice(0, 3);
+
+        return toShow.map(m =>
+            `${m.homeTeam.name} ${m.score.fullTime.home ?? '?'}-${m.score.fullTime.away ?? '?'} ${m.awayTeam.name} (${m.status}, ${m.competition.name})`
+        ).join('\n');
+    } catch (e) {
+        console.error('FootballData error:', e.message);
+        return null;
+    }
+}
+
+module.exports = { webSearch, searchGdelt, searchWikipedia, searchDuckDuckGo, searchSportsDB, searchFootballData };
