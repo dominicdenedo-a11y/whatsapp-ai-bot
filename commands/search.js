@@ -21,7 +21,8 @@ async function webSearch(query) {
     const fallbacks = await Promise.all([
         searchGdelt(query),
         searchWikipedia(query),
-        searchDuckDuckGo(query)
+        searchDuckDuckGo(query),
+        searchSportsDB(query)
     ]);
     const combined = fallbacks.filter(Boolean).join('\n\n');
     return combined || null;
@@ -69,4 +70,33 @@ async function searchDuckDuckGo(query) {
     }
 }
 
-module.exports = { webSearch, searchGdelt, searchWikipedia, searchDuckDuckGo };
+
+async function searchSportsDB(query) {
+    try {
+        const res = await axios.get(`https://www.thesportsdb.com/api/v1/json/123/searchteams.php`, {
+            params: { t: query },
+            timeout: 8000
+        });
+        const team = res.data?.teams?.[0];
+        if (!team) return null;
+
+        let lastResult = '';
+        try {
+            const eventsRes = await axios.get(`https://www.thesportsdb.com/api/v1/json/123/eventslast.php`, {
+                params: { id: team.idTeam },
+                timeout: 8000
+            });
+            const lastEvent = eventsRes.data?.results?.[0];
+            if (lastEvent) {
+                lastResult = ` Last match: ${lastEvent.strEvent} - ${lastEvent.intHomeScore}-${lastEvent.intAwayScore} on ${lastEvent.dateEvent}.`;
+            }
+        } catch(_) {}
+
+        return `TheSportsDB: ${team.strTeam} (${team.strLeague}).${lastResult}`;
+    } catch (e) {
+        console.error('SportsDB error:', e.message);
+        return null;
+    }
+}
+
+module.exports = { webSearch, searchGdelt, searchWikipedia, searchDuckDuckGo, searchSportsDB };
