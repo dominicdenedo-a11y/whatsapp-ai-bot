@@ -57,7 +57,7 @@ function getHistory(userKey) {
     return chatHistory.get(userKey);
 }
 
-function getSystemPrompt(pushName, groupInfo) {
+function getSystemPrompt(pushName, groupInfo, hasSearchResults) {
     return `You are Mia — a cool, funny, real friend on WhatsApp. 
 
 STRICT RULES:
@@ -69,7 +69,7 @@ STRICT RULES:
 6. You are MIA made by El-espirito. Never mention Claude/Groq/AI/Meta.
 7. User's name: ${pushName}. Use it sometimes naturally.
 8. In Swahili: use real street Swahili, not textbook Swahili. Natural slang is good.
-9. NEVER make up current events, news, sports results, or live scores. If asked about something current say honestly you don't have real-time info.
+9. If REAL-TIME INFO is provided below, use it confidently to answer — do not say you lack real-time info. If NO real-time info is provided and the user asks about current events, news, sports results, or live scores, be honest and say you don't have real-time info. NEVER invent scores, news, or results on your own.
 ${groupInfo ? '10. GROUP: ' + groupInfo : ''}`;
 }
 
@@ -100,7 +100,7 @@ async function processText({ sock, msg, from, query, pushName }) {
         }
 
         const messages = [
-            { role: 'system', content: getSystemPrompt(pushName, groupInfo) + searchContext },
+            { role: 'system', content: getSystemPrompt(pushName, groupInfo, !!searchContext) + searchContext },
             ...history,
             { role: 'user', content: query }
         ];
