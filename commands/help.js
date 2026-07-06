@@ -74,6 +74,8 @@ async function showMenu({ sock, msg, from, pushName }) {
 📲 *ꜱᴏᴄɪᴀʟ ᴍᴇᴅɪᴀ*
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 ┃ 📧 dominicdenedo@gmail.com
+┃ 📸 Instagram: el_.espirito
+┃ 🎵 TikTok: el_espirito
 
 ╔╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╗
 ║  ⚡ *ᴘᴏᴡᴇʀᴇᴅ ʙʏ*     ║

@@ -36,7 +36,7 @@ async function textToVoice({ sock, msg, from, text }) {
                     else resolve();
                 });
             }),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('TTS timeout')), 10000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('TTS timeout')), 30000))
         ]);
 
         // Step 2: Convert to ogg

@@ -9,7 +9,7 @@ const APK_LIST = {
     capcut: { name: '🎥 CapCut Pro', url: 'https://liteapks.com/capcut.html' },
     picsart: { name: '🖼️ PicsArt Gold', url: 'https://liteapks.com/picsart.html' },
     instagram: { name: '📸 Instagram++', url: 'https://liteapks.com/instagram-plus.html' },
-    whatsapp: { name: '💬 WhatsApp Plus', url: 'https://liteapks.com/whatsapp-plus.html' },
+    whatsapp: { name: '💬 GB WhatsApp Pro v18.80', url: 'https://gbwatt.com/' },
     tiktok: { name: '🎵 TikTok++', url: 'https://liteapks.com/tiktok.html' },
     vpn: { name: '🔒 NordVPN Premium', url: 'https://liteapks.com/nordvpn.html' }
 };

@@ -33,7 +33,7 @@ async function handleFun({ sock, msg, from, cmd, args, pushName }) {
     try {
         const groq = new Groq({ apiKey });
         const response = await groq.chat.completions.create({
-            model: 'llama-3.1-8b-instant',
+            model: 'openai/gpt-oss-120b',
             messages: [{ role: 'user', content: promptFn(args) }],
             max_tokens: 1000,
         });

@@ -1,4 +1,5 @@
 const Groq = require('groq-sdk');
+const { webSearch } = require('./search');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 const { transcribeVoice, textToVoice } = require('./voice');
 
@@ -57,26 +58,19 @@ function getHistory(userKey) {
 }
 
 function getSystemPrompt(pushName, groupInfo) {
-    return `You are Mia — a friendly, helpful and funny WhatsApp AI bot. Follow these rules:
+    return `You are Mia — a cool, funny, real friend on WhatsApp. 
 
-1. LANGUAGE: ALWAYS reply in the EXACT same language the user writes in. Swahili → Swahili. Arabic → Arabic. English → English. Mixed → Mixed.
-2. LENGTH: Short question = short reply. Detailed question = detailed reply.
-3. PERSONALITY: Warm, friendly and funny. Simple humor everyone understands.
-4. MEMORY: Remember everything in this conversation — text, images, voice messages. Use context naturally.
-5. You are MIA — created by El-espirito. NEVER mention Claude/Groq/Meta/AI. If asked who made you, say El-espirito made you.
-6. The user's name is ${pushName}.
-${groupInfo ? '7. GROUP CONTEXT: ' + groupInfo : ''}
-
-YOUR COMMANDS (teach users when they ask):
-💬 AI CHAT: Just type !anything to chat with me
-📥 DOWNLOAD: Send !<video link> — supports YouTube, TikTok, Instagram, Twitter
-🖼️ IMAGE: Send image with !caption (e.g. !food, !read, !translate, !meme)
-🎙️ VOICE: Reply to voice message with !reply
-🎵 APK: !apk spotify, !apk netflix, !apk youtube etc
-🎉 FUN: !joke !fact !quote !roast !story !poem !rap !dare !truth !trivia
-🛠️ UTILS: !translate !calc !define !summarize !code !explain !recipe !workout
-👥 GROUPS (admin only): !kick !add !promote !demote !mute !unmute !tagall !groupinfo
-📋 MENU: !menu or !help`;
+STRICT RULES:
+1. LANGUAGE: Reply in the EXACT same language as the user. Swahili slang → Swahili slang. English → English. Mixed → Mixed. NEVER switch languages.
+2. LENGTH: Match the energy. Short message = short reply. Long message = longer reply. 
+3. PERSONALITY: Talk like a real friend — casual, funny, warm. NOT like a robot or assistant.
+4. NEVER EVER suggest commands like !joke !rap !menu in your replies. NEVER. This is forbidden.
+5. NEVER say things like "Ungependa kicheko?" or "Want a joke?" — just reply naturally to what they said.
+6. You are MIA made by El-espirito. Never mention Claude/Groq/AI/Meta.
+7. User's name: ${pushName}. Use it sometimes naturally.
+8. In Swahili: use real street Swahili, not textbook Swahili. Natural slang is good.
+9. NEVER make up current events, news, sports results, or live scores. If asked about something current say honestly you don't have real-time info.
+${groupInfo ? '10. GROUP: ' + groupInfo : ''}`;
 }
 
 async function processText({ sock, msg, from, query, pushName }) {
@@ -97,14 +91,22 @@ async function processText({ sock, msg, from, query, pushName }) {
             groupInfo = `Group: ${ctx.name}. Desc: ${ctx.desc}. Recent: ${ctx.recentMsgs.slice(-3).join(' | ')}`;
         }
 
+        // Check if query needs real-time info
+        const needsSearch = /news|today|latest|current|score|result|match|price|weather|who won|standing|live/i.test(query);
+        let searchContext = '';
+        if (needsSearch) {
+            const results = await webSearch(query);
+            if (results) searchContext = `\n\nREAL-TIME INFO (use this to answer):\n${results}`;
+        }
+
         const messages = [
-            { role: 'system', content: getSystemPrompt(pushName, groupInfo) },
+            { role: 'system', content: getSystemPrompt(pushName, groupInfo) + searchContext },
             ...history,
             { role: 'user', content: query }
         ];
 
         const response = await groq.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+            model: 'openai/gpt-oss-120b',
             messages,
             max_tokens: 1000,
         });
@@ -215,7 +217,7 @@ async function processVoice({ sock, msg, from, pushName }) {
         ];
 
         const response = await groq.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+            model: 'openai/gpt-oss-120b',
             messages,
             max_tokens: 200,
         });

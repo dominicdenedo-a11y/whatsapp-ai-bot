@@ -155,7 +155,7 @@ async function startBot() {
         },
         logger: pino({ level: 'silent' }),
         printQRInTerminal: false,
-        browser: Browsers.windows('Chrome'),
+        browser: Browsers.ubuntu('Chrome'),
         connectTimeoutMs: 120000,
         keepAliveIntervalMs: 20000,
         msgRetryCounterCache: new (require('node-cache'))(),
@@ -173,7 +173,7 @@ async function startBot() {
 
         if (connection === 'connecting' && phone && !codeDone) {
             codeDone = true;
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 3000));
             try {
                 const code = await sock.requestPairingCode(phone);
                 const fmt = code.match(/.{1,4}/g).join('-');
@@ -181,7 +181,7 @@ async function startBot() {
                 console.log('WhatsApp > 3 dots > Linked Devices > Link a Device > Link with phone number');
                 console.log(`Enter: ${fmt}\n`);
             } catch (e) {
-                console.log('❌ Code error:', e.message);
+                console.log('❌ Code error:', e.message, e.stack);
                 process.exit(1);
             }
         }

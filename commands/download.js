@@ -18,7 +18,7 @@ async function downloadTikTok(url) {
     const apis = [
         async () => {
             const res = await axios.get(`https://tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`, { timeout: 15000 });
-            if (res.data?.code === 0) return res.data.data?.hdplay || res.data.data?.play;
+            if (res.data?.code === 0) return res.data.data?.play || res.data.data?.hdplay;
         },
         async () => {
             const res = await axios.get(`https://api.tiklydown.eu.org/api/download?url=${encodeURIComponent(url)}`, { timeout: 15000 });
@@ -60,20 +60,17 @@ async function downloadVideo({ sock, msg, from, url, pushName }) {
                 await sock.sendMessage(from, { text: '❌ Could not get TikTok video. Try another link.' }, { quoted: msg });
                 return;
             }
-            const response = await axios.get(videoUrl, { responseType: 'arraybuffer', timeout: 30000 });
-            const buffer = Buffer.from(response.data);
-            const sizeMB = (buffer.length / 1024 / 1024).toFixed(2);
 
-            if (buffer.length > 64 * 1024 * 1024) {
-                await sock.sendMessage(from, { text: `⚠️ File is ${sizeMB}MB — too large for WhatsApp (64MB limit).` }, { quoted: msg });
-                return;
+            // Send using direct URL - no download needed
+            try {
+                await sock.sendMessage(from, {
+                    video: { url: videoUrl },
+                    caption: `✅ *TikTok*`,
+                    mimetype: 'video/mp4',
+                }, { quoted: msg });
+            } catch(e) {
+                await sock.sendMessage(from, { text: `❌ Upload failed: ${e.message}` }, { quoted: msg });
             }
-
-            await sock.sendMessage(from, {
-                video: buffer,
-                caption: `✅ *TikTok*\n📁 ${sizeMB} MB`,
-                mimetype: 'video/mp4',
-            }, { quoted: msg });
         } catch (e) {
             await sock.sendMessage(from, { text: `❌ TikTok error: ${e.message}` }, { quoted: msg });
         }

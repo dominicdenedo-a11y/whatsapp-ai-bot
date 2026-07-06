@@ -10,7 +10,8 @@ const { showMenu } = require('./help');
 
 const URL_REGEX = /https?:\/\/[^\s]*/i;
 
-async function handleCommand({ sock, msg, from, text, pushName, isVoice = false, quotedText = '', nameCache = new Map() }) {
+async function handleCommand({ sock, msg, from, text, pushName, isVoice = false, quotedText = '', nameCache }) {
+    if (!nameCache) nameCache = new Map();
     // Helper to get clean name from JID
     const getMentionName = (jid) => {
         const num = jid?.split('@')[0] || jid;
@@ -21,6 +22,27 @@ async function handleCommand({ sock, msg, from, text, pushName, isVoice = false,
     if (msg.message?.imageMessage) {
         if (!rawText || !rawText.startsWith('!')) return;
         await processImage({ sock, msg, from, caption: rawText, pushName });
+        return;
+    }
+
+    // Check if replying to an image
+    const quotedImage = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage?.imageMessage;
+    if (quotedImage && rawText.startsWith('!')) {
+        // Download quoted image and analyze it
+        const { downloadMediaMessage } = require('@whiskeysockets/baileys');
+        try {
+            const quotedMsg = {
+                key: {
+                    remoteJid: from,
+                    id: msg.message.extendedTextMessage.contextInfo.stanzaId,
+                    participant: msg.message.extendedTextMessage.contextInfo.participant
+                },
+                message: msg.message.extendedTextMessage.contextInfo.quotedMessage
+            };
+            await processImage({ sock, msg: quotedMsg, from, caption: rawText, pushName });
+        } catch(e) {
+            console.error('Quoted image error:', e.message);
+        }
         return;
     }
 
