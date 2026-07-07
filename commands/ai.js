@@ -1,5 +1,5 @@
 const Groq = require('groq-sdk');
-const { searchAll } = require('./search');
+const { webSearch } = require('./search');
 const { downloadMediaMessage } = require('@whiskeysockets/baileys');
 const { transcribeVoice, textToVoice } = require('./voice');
 
@@ -99,7 +99,7 @@ async function processText({ sock, msg, from, query, pushName }) {
         const needsSearch = /news|today|latest|current|score|result|match|price|weather|who won|standing|live|sure|wrong|really|actually|are you sure|correct|capital|population|country|where is|located|who is|what is|trivia|quiz|fact/i.test(query);
         let searchContext = '';
         if (needsSearch) {
-            const results = await searchAll(query);
+            const results = await webSearch(query);
             if (results) {
                 searchContext = `\n\nREAL-TIME INFO (use this to answer):\n${results}`;
                 searchMemory.set(userKey, { query, results, time: Date.now() });
