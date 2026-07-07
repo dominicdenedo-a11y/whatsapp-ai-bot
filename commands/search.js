@@ -128,4 +128,63 @@ async function searchFootballData(query) {
     }
 }
 
-module.exports = { webSearch, searchGdelt, searchWikipedia, searchDuckDuckGo, searchSportsDB, searchFootballData };
+
+async function searchWikidata(query) {
+    try {
+        const res = await axios.get('https://www.wikidata.org/w/api.php', {
+            params: { action: 'wbsearchentities', search: query, language: 'en', format: 'json' },
+            headers: { 'User-Agent': 'whatsapp-ai-bot/1.0' },
+            timeout: 8000
+        });
+        const results = res.data?.search;
+        if (!results || results.length === 0) return null;
+        return results.slice(0, 3).map(r => `${r.label}: ${r.description || ''}`).join('\n');
+    } catch (e) {
+        console.error('Wikidata error:', e.message);
+        return null;
+    }
+}
+
+async function searchOpenStreetMap(query) {
+    try {
+        const res = await axios.get('https://nominatim.openstreetmap.org/search', {
+            params: { q: query, format: 'json', limit: 3 },
+            headers: { 'User-Agent': 'whatsapp-ai-bot' },
+            timeout: 8000
+        });
+        if (!res.data || res.data.length === 0) return null;
+        return res.data.map(r => `${r.display_name}`).join('\n');
+    } catch (e) {
+        console.error('OpenStreetMap error:', e.message);
+        return null;
+    }
+}
+
+async function searchRestCountries(query) {
+    try {
+        const res = await axios.get(`https://restcountries.com/v3.1/name/${encodeURIComponent(query)}`, { timeout: 8000 });
+        const country = res.data?.[0];
+        if (!country) return null;
+        return `${country.name.common}: Capital ${country.capital?.[0] || 'N/A'}, Population ${country.population}, Region ${country.region}`;
+    } catch (e) {
+        console.error('RestCountries error:', e.message);
+        return null;
+    }
+}
+
+async function searchOpenTrivia() {
+    try {
+        const res = await axios.get('https://opentdb.com/api.php', {
+            params: { amount: 1 },
+            timeout: 8000
+        });
+        const q = res.data?.results?.[0];
+        if (!q) return null;
+        return `Trivia: ${q.question} (Answer: ${q.correct_answer})`;
+    } catch (e) {
+        console.error('OpenTrivia error:', e.message);
+        return null;
+    }
+}
+
+module.exports = { webSearch, searchGdelt, searchWikipedia, searchDuckDuckGo, searchSportsDB, searchFootballData, searchWikidata, searchOpenStreetMap, searchRestCountries, searchOpenTrivia };
