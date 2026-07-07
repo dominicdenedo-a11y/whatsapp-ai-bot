@@ -162,12 +162,12 @@ async function searchOpenStreetMap(query) {
 
 async function searchRestCountries(query) {
     try {
-        const res = await axios.get(`https://restcountries.com/v3.1/name/${encodeURIComponent(query)}`, { timeout: 8000 });
-        const country = res.data?.[0];
+        const res = await axios.get(`https://countries.dev/name/${encodeURIComponent(query)}`, { timeout: 8000 });
+        const country = Array.isArray(res.data) ? res.data[0] : res.data;
         if (!country) return null;
-        return `${country.name.common}: Capital ${country.capital?.[0] || 'N/A'}, Population ${country.population}, Region ${country.region}`;
+        return `${country.name}: Capital ${country.capital}, Population ${country.population}, Region ${country.region}`;
     } catch (e) {
-        console.error('RestCountries error:', e.message);
+        console.error('CountriesDev error:', e.message);
         return null;
     }
 }
