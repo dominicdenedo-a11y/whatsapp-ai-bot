@@ -29,7 +29,6 @@ async function webSearch(query) {
     return combined || null;
 }
 
-
 async function searchGdelt(query) {
     try {
         const res = await axios.get('https://api.gdeltproject.org/api/v2/doc/doc', {
@@ -71,7 +70,6 @@ async function searchDuckDuckGo(query) {
     }
 }
 
-
 async function searchSportsDB(query) {
     try {
         const res = await axios.get(`https://www.thesportsdb.com/api/v1/json/123/searchteams.php`, {
@@ -100,7 +98,6 @@ async function searchSportsDB(query) {
     }
 }
 
-
 async function searchFootballData(query) {
     try {
         const res = await axios.get('https://api.football-data.org/v4/matches', {
@@ -111,7 +108,6 @@ async function searchFootballData(query) {
         const matches = res.data?.matches;
         if (!matches || matches.length === 0) return null;
 
-        // Try to find matches relevant to the query (basic keyword match on team names)
         const q = query.toLowerCase();
         const relevant = matches.filter(m =>
             q.includes(m.homeTeam.name.toLowerCase().split(' ')[0]) ||
@@ -128,102 +124,4 @@ async function searchFootballData(query) {
     }
 }
 
-
-async function searchWikidata(query) {
-    try {
-        const res = await axios.get('https://www.wikidata.org/w/api.php', {
-            params: { action: 'wbsearchentities', search: query, language: 'en', format: 'json' },
-            headers: { 'User-Agent': 'whatsapp-ai-bot/1.0' },
-            timeout: 8000
-        });
-        const results = res.data?.search;
-        if (!results || results.length === 0) return null;
-        return results.slice(0, 3).map(r => `${r.label}: ${r.description || ''}`).join('\n');
-    } catch (e) {
-        console.error('Wikidata error:', e.message);
-        return null;
-    }
-}
-
-async function searchOpenStreetMap(query) {
-    try {
-        const res = await axios.get('https://nominatim.openstreetmap.org/search', {
-            params: { q: query, format: 'json', limit: 3 },
-            headers: { 'User-Agent': 'whatsapp-ai-bot' },
-            timeout: 8000
-        });
-        if (!res.data || res.data.length === 0) return null;
-        return res.data.map(r => `${r.display_name}`).join('\n');
-    } catch (e) {
-        console.error('OpenStreetMap error:', e.message);
-        return null;
-    }
-}
-
-async function searchRestCountries(query) {
-    // Disabled: countries.dev API endpoint structure unclear, Tavily/Wikipedia already cover country facts
-    return null;
-}
-
-async function searchOpenTrivia() {
-    try {
-        const res = await axios.get('https://opentdb.com/api.php', {
-            params: { amount: 1 },
-            timeout: 8000
-        });
-        const q = res.data?.results?.[0];
-        if (!q) return null;
-        return `Trivia: ${q.question} (Answer: ${q.correct_answer})`;
-    } catch (e) {
-        console.error('OpenTrivia error:', e.message);
-        return null;
-    }
-}
-
-
-async function searchAll(query) {
-    const [tavily, gdelt, wiki, ddg, sportsdb, footballdata, wikidata, osm, countries, trivia] = await Promise.all([
-        (async () => {
-            try {
-                const res = await axios.post('https://api.tavily.com/search', {
-                    api_key: process.env.TAVILY_KEY,
-                    query,
-                    max_results: 3,
-                    search_depth: 'advanced',
-                    include_answer: true
-                }, { timeout: 10000 });
-                if (!res.data.results || res.data.results.length === 0) return null;
-                const answerPart = res.data.answer ? `Direct answer: ${res.data.answer}\n\n` : '';
-                return answerPart + res.data.results.map(r => `${r.title}: ${r.content.slice(0, 500)}`).join('\n\n');
-            } catch (e) {
-                console.error('Tavily error:', e.message);
-                return null;
-            }
-        })(),
-        searchGdelt(query),
-        searchWikipedia(query),
-        searchDuckDuckGo(query),
-        searchSportsDB(query),
-        searchFootballData(query),
-        searchWikidata(query),
-        searchOpenStreetMap(query),
-        searchRestCountries(query),
-        searchOpenTrivia()
-    ]);
-
-    const sections = [];
-    if (tavily) sections.push(`[Tavily/News]\n${tavily}`);
-    if (gdelt) sections.push(`[GDELT]\n${gdelt}`);
-    if (wiki) sections.push(`[Wikipedia]\n${wiki}`);
-    if (ddg) sections.push(`[DuckDuckGo]\n${ddg}`);
-    if (sportsdb) sections.push(`[TheSportsDB]\n${sportsdb}`);
-    if (footballdata) sections.push(`[FootballData]\n${footballdata}`);
-    if (wikidata) sections.push(`[Wikidata]\n${wikidata}`);
-    if (osm) sections.push(`[OpenStreetMap]\n${osm}`);
-    if (countries) sections.push(`[Countries]\n${countries}`);
-    if (trivia) sections.push(`[Trivia]\n${trivia}`);
-
-    return sections.length > 0 ? sections.join('\n\n---\n\n') : null;
-}
-
-module.exports = { webSearch, searchGdelt, searchWikipedia, searchDuckDuckGo, searchSportsDB, searchFootballData, searchWikidata, searchOpenStreetMap, searchRestCountries, searchOpenTrivia, searchAll };
+module.exports = { webSearch, searchGdelt, searchWikipedia, searchDuckDuckGo, searchSportsDB, searchFootballData };
