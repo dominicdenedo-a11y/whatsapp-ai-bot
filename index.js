@@ -21,7 +21,7 @@ async function getInput(prompt) {
 
 async function processMessage(sock, msg) {
     console.log('PROCESS MSG:', msg.key.remoteJid, Object.keys(msg.message || {}));
-    if (!msg.message || msg.key.fromMe) return;
+    if (!msg.message) return;
     if (msg.key.remoteJid === "status@broadcast") return;
 
     const from = msg.key.remoteJid;

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>WhatsApp Bot Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+    body { font-family: -apple-system, sans-serif; background: #0b141a; color: #e9edef; margin: 0; padding: 16px; }
+    h1 { font-size: 20px; color: #00a884; }
+    .card { background: #202c33; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 18px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .online { background: #00a884; }
+    .offline { background: #f15c6d; }
+    .stat { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #2a3942; }
+    pre { background: #111b21; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; }
+    button { background: #00a884; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 14px; }
+    button:active { opacity: 0.7; }
+</style>
+</head>
+<body>
+    <h1>🤖 Bot Dashboard</h1>
+
+    <div class="card">
+        <div class="status">
+            <div class="dot" id="statusDot"></div>
+            <span id="statusText">Loading...</span>
+        </div>
+        <div style="margin-top:12px">
+            <div class="stat"><span>Restarts</span><span id="restarts">-</span></div>
+            <div class="stat"><span>Memory</span><span id="memory">-</span></div>
+            <div class="stat"><span>CPU</span><span id="cpu">-</span></div>
+        </div>
+        <button onclick="restartBot()" style="margin-top:12px; width:100%">Restart Bot</button>
+    </div>
+
+    <div class="card">
+        <h3>Recent Logs</h3>
+        <pre id="logs">Loading...</pre>
+    </div>
+
+    <div class="card">
+        <h3>Recent Errors</h3>
+        <pre id="errors">Loading...</pre>
+    </div>
+
+<script>
+async function load() {
+    const s = await fetch('/api/status').then(r => r.json());
+    if (s.found) {
+        document.getElementById('statusDot').className = 'dot ' + (s.status === 'online' ? 'online' : 'offline');
+        document.getElementById('statusText').textContent = s.status;
+        document.getElementById('restarts').textContent = s.restarts;
+        document.getElementById('memory').textContent = (s.memory / 1024 / 1024).toFixed(1) + ' MB';
+        document.getElementById('cpu').textContent = s.cpu + '%';
+    } else {
+        document.getElementById('statusText').textContent = 'Not found';
+    }
+
+    const l = await fetch('/api/logs').then(r => r.json());
+    document.getElementById('logs').textContent = l.logs || 'No logs';
+
+    const e = await fetch('/api/errors').then(r => r.json());
+    document.getElementById('errors').textContent = e.logs || 'No errors';
+}
+
+async function restartBot() {
+    if (!confirm('Restart the bot?')) return;
+    await fetch('/api/restart', { method: 'POST' });
+    setTimeout(load, 2000);
+}
+
+load();
+setInterval(load, 5000);
+</script>
+</body>
+</html>

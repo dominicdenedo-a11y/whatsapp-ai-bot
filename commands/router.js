@@ -7,6 +7,7 @@ const { handleGroupFeatures } = require('./groupfeatures');
 const { handleApk } = require('./apk');
 const { textToVoice } = require('./voice');
 const { showMenu } = require('./help');
+const { handleSend } = require('./send');
 
 const URL_REGEX = /https?:\/\/[^\s]*/i;
 
@@ -95,6 +96,10 @@ User: ${args || 'Hello!'}` : args || 'Hello!';
 
         case 'apk':
             await handleApk({ sock, msg, from, args, pushName });
+            break;
+
+        case 'send':
+            await handleSend({ sock, msg, from, args, pushName });
             break;
 
         case 'reply':
